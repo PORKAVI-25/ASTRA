@@ -1,7 +1,7 @@
 {
   "scene_id": "synthetic_test_utm_545f364d",
-  "sensor": "SENTINEL-2A MSI",
-  "platform": "SENTINEL-2",
+  "sensor": "Sentinel-2A MSI",
+  "platform": "Sentinel-2",
   "acquisition_time": "2026-03-15T05:20:21Z",
   "crs": "EPSG:32643",
   "bounds_wgs84": {
@@ -17,7 +17,7 @@
     "B03_Green",
     "B04_Red"
   ],
-  "source_file_path": "C:/Users/porka/AppData/Local/Temp/pytest-of-porka/pytest-1/astra_ingestion_test0/synthetic_test_utm.tif",
+  "source_file_path": "C:/Users/porka/AppData/Local/Temp/pytest-of-porka/pytest-6/astra_ingestion_test0/synthetic_test_utm.tif",
   "is_cog": false,
   "tile_count": 4,
   "nodata_value": null,
@@ -33,5 +33,5 @@
   "file_hash": "545f364d79983a997b07a7a539cad89fed2f8ef7da41eb1f5a8531b24cdb0cf0",
   "processing_warnings": [],
   "is_synthetic": true,
-  "created_at": "2026-09-16T05:15:06.665809Z"
+  "created_at": "2026-09-16T08:54:59.497581Z"
 }

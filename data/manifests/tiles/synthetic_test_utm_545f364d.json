@@ -18,7 +18,7 @@
       "max_lat": 12.657817
     },
     "acquisition_time": "2026-03-15T05:20:21Z",
-    "sensor": "SENTINEL-2A MSI",
+    "sensor": "Sentinel-2A MSI",
     "file_path": "data/processed/tiles/synthetic_test_utm_545f364d/tile_synthetic_test_utm_545f364d_c0000_r0000_z14.png",
     "sha256_hash": "630a6d4aa57ae1677fd4589809f2e13cc6ad50a8dcf74c21551b6e2266f0997f",
     "nodata_pixel_count": 0,
@@ -44,7 +44,7 @@
       "max_lat": 12.657487
     },
     "acquisition_time": "2026-03-15T05:20:21Z",
-    "sensor": "SENTINEL-2A MSI",
+    "sensor": "Sentinel-2A MSI",
     "file_path": "data/processed/tiles/synthetic_test_utm_545f364d/tile_synthetic_test_utm_545f364d_c0001_r0000_z14.png",
     "sha256_hash": "9213ab357130ea3d4b0adad47bc473d3cc31706877d9fc75a939e9e214b478c7",
     "nodata_pixel_count": 0,
@@ -70,7 +70,7 @@
       "max_lat": 12.611541
     },
     "acquisition_time": "2026-03-15T05:20:21Z",
-    "sensor": "SENTINEL-2A MSI",
+    "sensor": "Sentinel-2A MSI",
     "file_path": "data/processed/tiles/synthetic_test_utm_545f364d/tile_synthetic_test_utm_545f364d_c0000_r0001_z14.png",
     "sha256_hash": "3aaa87be4c67506f7526a2a09d2d5fd331d04b0486f95d3a735d26240fb0bf68",
     "nodata_pixel_count": 0,
@@ -96,7 +96,7 @@
       "max_lat": 12.611212
     },
     "acquisition_time": "2026-03-15T05:20:21Z",
-    "sensor": "SENTINEL-2A MSI",
+    "sensor": "Sentinel-2A MSI",
     "file_path": "data/processed/tiles/synthetic_test_utm_545f364d/tile_synthetic_test_utm_545f364d_c0001_r0001_z14.png",
     "sha256_hash": "347b4ea83370bc66324f082866d42aea09c9c1129c079558f1bc49c43600b6f1",
     "nodata_pixel_count": 0,

@@ -59,7 +59,7 @@ def detect_sensor_and_platform(meta_tags: Dict[str, str], stem: str) -> Tuple[st
     Defaults explicitly to ('unknown', 'unknown') without fabricating data.
     """
     stem_upper = stem.upper()
-    tags_upper = {k.upper(): str(v).upper() for k, v in meta_tags.items()}
+    tags_upper = {k.upper(): str(v) for k, v in meta_tags.items()}
 
     # Check tags
     sensor = tags_upper.get("SENSOR", tags_upper.get("INSTRUMENT", ""))
