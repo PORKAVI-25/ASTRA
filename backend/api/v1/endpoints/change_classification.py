@@ -12,7 +12,12 @@ from pydantic import BaseModel, Field
 from backend.config import settings
 from backend.ml.change.types import ScenePair
 from backend.ml.change_classification.service import ChangeClassificationEvidenceService
-from backend.ml.change_classification.types import ChangeEvidence, EvidenceConfig
+from backend.ml.change_classification.types import (
+    ChangeClassificationResult,
+    ChangeEvidence,
+    ClassifierConfig,
+    EvidenceConfig,
+)
 from backend.ml.change_detection.service import ChangeDetectionService
 from backend.ml.change_detection.types import ChangeDetectionResult
 
@@ -50,6 +55,14 @@ class ChangeEvidenceRunRequest(BaseModel):
     config: Optional[EvidenceConfig] = Field(default=None, description="Evidence extraction hyperparameters")
 
 
+class ChangeClassificationRunRequest(BaseModel):
+    """Request payload for change-type classification."""
+
+    evidence_id: Optional[str] = Field(default=None, description="M4C-A Evidence ID")
+    evidence: Optional[ChangeEvidence] = Field(default=None, description="Direct ChangeEvidence contract")
+    config: Optional[ClassifierConfig] = Field(default=None, description="Classification hyperparameters and thresholds")
+
+
 class ChangeClassificationHealthResponse(BaseModel):
     """Telemetry schema for change classification subsystem."""
 
@@ -57,8 +70,11 @@ class ChangeClassificationHealthResponse(BaseModel):
     subsystem: str = "change_evidence_extraction"
     extractor_id: str = "astra_change_evidence"
     extractor_version: str = "1.0.0"
+    classifier_id: str = "astra_deterministic_rule_classifier"
+    classifier_version: str = "1.0.0"
     offline_mode: bool = True
     evidence_documents_stored: int
+    classifications_stored: int
 
 
 @router.get(
@@ -70,15 +86,19 @@ class ChangeClassificationHealthResponse(BaseModel):
 async def change_classification_health(
     service: ChangeClassificationEvidenceService = Depends(get_evidence_service),
 ):
-    """Reports status, active extractor version, and count of stored evidence documents."""
-    count = len(service.list_evidence())
+    """Reports status, active extractor and classifier versions, and counts of stored artifacts."""
+    evi_count = len(service.list_evidence())
+    cls_count = len(service.list_classifications())
     return ChangeClassificationHealthResponse(
         status="healthy",
         subsystem="change_evidence_extraction",
         extractor_id=service.extractor.config.extractor_id,
         extractor_version=service.extractor.config.extractor_version,
+        classifier_id=service.classifier.config.classifier_id,
+        classifier_version=service.classifier.config.classifier_version,
         offline_mode=settings.ASTRA_OFFLINE_MODE,
-        evidence_documents_stored=count,
+        evidence_documents_stored=evi_count,
+        classifications_stored=cls_count,
     )
 
 
@@ -162,3 +182,61 @@ async def get_change_evidence(
             detail=f"Change evidence document '{evidence_id}' not found.",
         )
     return evidence
+
+
+@router.post(
+    "/classify",
+    response_model=ChangeClassificationResult,
+    status_code=status.HTTP_200_OK,
+    summary="Classify change types from evidence",
+)
+async def classify_changes(
+    request: ChangeClassificationRunRequest,
+    service: ChangeClassificationEvidenceService = Depends(get_evidence_service),
+):
+    """Executes deterministic, explainable change-type classification on extracted evidence."""
+    evidence = request.evidence
+    if evidence is None and request.evidence_id:
+        evidence = service.get_evidence(request.evidence_id)
+        if evidence is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Change evidence document '{request.evidence_id}' not found.",
+            )
+
+    if evidence is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Must provide either 'evidence' (ChangeEvidence contract) or 'evidence_id'.",
+        )
+
+    try:
+        classification = service.classify_evidence(evidence, config=request.config)
+        return classification
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Change classification failed: {str(e)}",
+        )
+
+
+@router.get(
+    "/classifications/{classification_id}",
+    response_model=ChangeClassificationResult,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve stored change classification",
+)
+async def get_change_classification(
+    classification_id: str,
+    service: ChangeClassificationEvidenceService = Depends(get_evidence_service),
+):
+    """Retrieves a previously computed change classification document by ID."""
+    cls_result = service.get_classification(classification_id)
+    if cls_result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Change classification document '{classification_id}' not found.",
+        )
+    return cls_result

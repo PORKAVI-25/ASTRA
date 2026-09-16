@@ -32,12 +32,21 @@ from backend.ml.change_detection import (
     ThresholdMethod,
 )
 from backend.ml.change_classification import (
+    CategoryCandidateScore,
+    ChangeCategory,
     ChangeClassificationEvidenceService,
+    ChangeClassificationMetrics,
+    ChangeClassificationResult,
     ChangeEvidence,
     ChangeEvidenceExtractor,
     ChangeRegionFeatures,
+    ClassifierConfig,
+    ConfidenceTier,
+    DeterministicChangeClassifier,
     EvidenceConfig,
     EvidenceFeature,
+    RegionClassification,
+    RuleEvaluation,
 )
 
 
@@ -79,4 +88,14 @@ __all__ = [
     "ChangeRegionFeatures",
     "EvidenceConfig",
     "EvidenceFeature",
+    # M4C-B Change-Type Classification
+    "DeterministicChangeClassifier",
+    "ChangeCategory",
+    "ConfidenceTier",
+    "RuleEvaluation",
+    "CategoryCandidateScore",
+    "RegionClassification",
+    "ChangeClassificationMetrics",
+    "ClassifierConfig",
+    "ChangeClassificationResult",
 ]

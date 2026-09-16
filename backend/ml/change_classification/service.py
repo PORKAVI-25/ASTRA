@@ -12,24 +12,32 @@ import numpy as np
 
 from backend.config import settings
 from backend.ml.change.types import ScenePair
+from backend.ml.change_classification.classifier import DeterministicChangeClassifier
 from backend.ml.change_classification.evidence import ChangeEvidenceExtractor
-from backend.ml.change_classification.types import ChangeEvidence, EvidenceConfig
+from backend.ml.change_classification.types import (
+    ChangeClassificationResult,
+    ChangeEvidence,
+    ClassifierConfig,
+    EvidenceConfig,
+)
 from backend.ml.change_detection.types import ChangeDetectionResult
 from geospatial.contracts import ProvenanceRecord
 
 
 class ChangeClassificationEvidenceService:
-    """Service managing evidence extraction execution, artifact persistence, and lineage."""
+    """Service managing evidence extraction and change classification execution, artifact persistence, and lineage."""
 
     def __init__(
         self,
         output_dir: Optional[Path] = None,
         provenance_dir: Optional[Path] = None,
         extractor: Optional[ChangeEvidenceExtractor] = None,
+        classifier: Optional[DeterministicChangeClassifier] = None,
     ):
         self.output_dir = output_dir or settings.ASTRA_CHANGE_CLASSIFICATION_DIR
         self.provenance_dir = provenance_dir or (settings.ASTRA_MANIFESTS_DIR / "provenance")
         self.extractor = extractor or ChangeEvidenceExtractor()
+        self.classifier = classifier or DeterministicChangeClassifier()
 
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.provenance_dir.mkdir(parents=True, exist_ok=True)
@@ -106,4 +114,64 @@ class ChangeClassificationEvidenceService:
             p.name
             for p in self.output_dir.iterdir()
             if p.is_dir() and (p / "evidence.json").exists()
+        ]
+
+    def classify_evidence(
+        self,
+        evidence: ChangeEvidence,
+        config: Optional[ClassifierConfig] = None,
+    ) -> ChangeClassificationResult:
+        """Executes change-type classification, serializes classification JSON, and records lineage."""
+        classification = self.classifier.classify(evidence, config=config)
+
+        # Persist structured classification artifact
+        target_dir = self.output_dir / classification.classification_id
+        target_dir.mkdir(parents=True, exist_ok=True)
+        cls_file = target_dir / "classification.json"
+        cls_file.write_text(classification.model_dump_json(indent=2), encoding="utf-8")
+
+        # Record immutable provenance record conforming to ASTRA-DC-v0.1
+        prov_record = ProvenanceRecord(
+            provenance_id=classification.provenance_id,
+            source_scene_id=classification.scene_pair_id,
+            target_tile_id=None,
+            processing_stage="change_type_classification",
+            pipeline_version="0.1.0",
+            parameters={
+                "classifier_id": classification.classifier_id,
+                "classifier_version": classification.classifier_version,
+                "evidence_id": classification.evidence_id,
+                "scene_pair_id": classification.scene_pair_id,
+                "change_detection_result_id": classification.change_detection_result_id,
+                "total_regions": classification.metrics.total_regions,
+                "category_counts": classification.metrics.category_counts,
+                "config": classification.config.model_dump(),
+                "input_hashes": evidence.source_hashes,
+                "artifact_path": str(cls_file),
+            },
+            executed_by="astra.ml.change_classification.classifier",
+            timestamp=classification.created_at,
+        )
+
+        prov_file = self.provenance_dir / f"{classification.provenance_id}.json"
+        prov_file.write_text(prov_record.model_dump_json(indent=2), encoding="utf-8")
+
+        return classification
+
+    def get_classification(self, classification_id: str) -> Optional[ChangeClassificationResult]:
+        """Loads a persisted ChangeClassificationResult document by its deterministic identifier."""
+        cls_file = self.output_dir / classification_id / "classification.json"
+        if not cls_file.exists():
+            return None
+        with open(cls_file, "r", encoding="utf-8") as f:
+            return ChangeClassificationResult.model_validate_json(f.read())
+
+    def list_classifications(self) -> List[str]:
+        """Lists all stored change classification identifiers."""
+        if not self.output_dir.exists():
+            return []
+        return [
+            p.name
+            for p in self.output_dir.iterdir()
+            if p.is_dir() and (p / "classification.json").exists()
         ]

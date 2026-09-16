@@ -6,6 +6,7 @@ Conforms to ASTRA-DC-v0.1.
 """
 
 from datetime import datetime, timezone
+from enum import Enum
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 from geospatial.contracts import GeoBoundingBox
@@ -150,6 +151,111 @@ class ChangeEvidence(BaseModel):
     regions: List[ChangeRegionFeatures] = Field(default_factory=list, description="Extracted features per change region")
     config: EvidenceConfig = Field(..., description="Configuration parameters applied during extraction")
     source_hashes: Dict[str, str] = Field(default_factory=dict, description="Cryptographic SHA-256 hashes of inputs")
+    provenance_id: str = Field(..., description="Associated immutable provenance record identifier")
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc), description="Execution timestamp"
+    )
+
+
+# ==============================================================================
+# Phase M4C-B: Change-Type Classification Contracts
+# ==============================================================================
+
+class ChangeCategory(str, Enum):
+    """Supported semantic change categories."""
+
+    CONSTRUCTION = "construction"
+    CLEARANCE = "clearance"
+    WATER_EXTENT_CHANGE = "water_extent_change"
+    ROAD_DEVELOPMENT = "road_development"
+    UNKNOWN = "unknown"
+
+
+class ConfidenceTier(str, Enum):
+    """Stratified confidence tiers based on modality completeness and score margin."""
+
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+    UNCERTAIN = "uncertain"
+
+
+class RuleEvaluation(BaseModel):
+    """Detailed evaluation of an individual domain rule."""
+
+    rule_id: str = Field(..., description="Unique identifier of rule")
+    category: ChangeCategory = Field(..., description="Target candidate category")
+    matched: bool = Field(..., description="Whether condition evaluated to True")
+    weight: float = Field(..., ge=0.0, description="Rule weight in scoring")
+    score_contribution: float = Field(..., description="Net contribution of this rule to score")
+    description: str = Field(..., description="Human-readable rule intent")
+    evidence_used: Dict[str, Any] = Field(default_factory=dict, description="Feature values inspected by rule")
+
+
+class CategoryCandidateScore(BaseModel):
+    """Candidate category evidence support summary."""
+
+    category: ChangeCategory
+    evidence_score: float = Field(..., ge=0.0, le=1.0)
+    matched_rule_count: int
+    primary_reason: str
+
+
+class RegionClassification(BaseModel):
+    """Complete semantic classification and explainability bundle for a ChangeRegion."""
+
+    region_id: str = Field(..., description="Matching M4B/M4C-A region identifier")
+    category: ChangeCategory = Field(..., description="Assigned semantic change category")
+    evidence_score: float = Field(
+        ..., ge=0.0, le=1.0, description="Uncalibrated degree of evidence alignment (non-probabilistic)"
+    )
+    confidence_tier: ConfidenceTier = Field(..., description="Confidence stratification")
+    decision_reason: str = Field(..., description="1-2 sentence human-readable decision explanation")
+    rule_evaluations: List[RuleEvaluation] = Field(default_factory=list, description="Auditing trail of evaluated rules")
+    candidate_scores: Dict[str, float] = Field(default_factory=dict, description="Scores per candidate category")
+    conflicting_categories: List[str] = Field(default_factory=list, description="Close runner-up candidates if ambiguous")
+    data_limitations: List[str] = Field(default_factory=list, description="Sensor/spectral data warnings")
+    is_ambiguous: bool = Field(default=False, description="True if conflict margin threshold was breached")
+
+
+class ChangeClassificationMetrics(BaseModel):
+    """Aggregated classification metrics across all regions in the scene."""
+
+    total_regions: int = Field(..., ge=0)
+    category_counts: Dict[str, int] = Field(default_factory=dict)
+    high_confidence_count: int = Field(..., ge=0)
+    ambiguous_count: int = Field(..., ge=0)
+    unclassified_unknown_fraction: float = Field(..., ge=0.0, le=1.0)
+
+
+class ClassifierConfig(BaseModel):
+    """Deterministic classification hyperparameters and rule thresholds."""
+
+    classifier_id: str = Field(default="astra_deterministic_rule_classifier")
+    classifier_version: str = Field(default="1.0.0")
+    min_classification_area_px: int = Field(default=10, ge=1, description="Minimum region pixel count to classify")
+    min_evidence_score_threshold: float = Field(default=0.45, ge=0.0, le=1.0, description="Minimum score to assign category")
+    ambiguity_margin_threshold: float = Field(default=0.15, ge=0.0, le=1.0, description="Required margin over runner-up")
+    construction_min_rectangularity: float = Field(default=0.60, ge=0.0, le=1.0)
+    road_min_linearity: float = Field(default=0.75, ge=0.0, le=1.0)
+    road_min_aspect_ratio: float = Field(default=5.0, ge=1.0)
+    road_max_minor_axis_px: float = Field(default=30.0, ge=1.0)
+    clearance_max_ndvi_delta: float = Field(default=-0.15, le=0.0)
+    water_min_criterion_fraction: float = Field(default=0.40, ge=0.0, le=1.0)
+
+
+class ChangeClassificationResult(BaseModel):
+    """Structured, reproducible change classification document conforming to ASTRA-DC-v0.1."""
+
+    classification_id: str = Field(..., min_length=5, description="Deterministic classification document identifier")
+    evidence_id: str = Field(..., min_length=5, description="Associated M4C-A ChangeEvidence identifier")
+    scene_pair_id: str = Field(..., min_length=5, description="Associated M4A ScenePair identifier")
+    change_detection_result_id: str = Field(..., min_length=5, description="Associated M4B ChangeDetectionResult identifier")
+    classifier_id: str = Field(..., description="Classifier algorithm identifier")
+    classifier_version: str = Field(..., description="Classifier semantic version")
+    config: ClassifierConfig = Field(..., description="Configuration parameters applied during classification")
+    metrics: ChangeClassificationMetrics = Field(..., description="Summary counts and distribution")
+    classifications: List[RegionClassification] = Field(default_factory=list, description="Per-region classifications")
     provenance_id: str = Field(..., description="Associated immutable provenance record identifier")
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc), description="Execution timestamp"
