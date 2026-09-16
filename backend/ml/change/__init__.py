@@ -1,34 +1,32 @@
-"""ASTRA Change Analysis Subsystem.
+"""ASTRA Temporal Modeling & Change Analysis Subsystem (Phase M4A).
 
-Responsible for co-registered tile temporal pairing, observation cataloging,
-and change detection pipelines.
+Exposes temporal data models, bounding-box spatial overlap analysis,
+chronological observation ordering, and deterministic scene/tile pairing.
 """
 
-from backend.ml.change import (
-    CatalogDiscoveryResult,
+from .types import (
     PairCompatibility,
     PairCompatibilityStatus,
     PairingConfig,
     ScenePair,
     SpatialOverlap,
-    TemporalCatalog,
     TemporalObservation,
     TemporalSeries,
+)
+from .scene_pairing import (
     compute_spatial_overlap,
     create_deterministic_pair_id,
     create_scene_pair,
     evaluate_pair_compatibility,
     pair_observations,
 )
-
-
-def get_change_analysis_status() -> str:
-    """Returns readiness status of change analysis subsystem."""
-    return "ready"
-
+from .temporal_catalog import (
+    CatalogDiscoveryResult,
+    TemporalCatalog,
+)
 
 __all__ = [
-    "get_change_analysis_status",
+    # Contracts
     "TemporalObservation",
     "SpatialOverlap",
     "PairCompatibility",
@@ -36,11 +34,13 @@ __all__ = [
     "ScenePair",
     "TemporalSeries",
     "PairingConfig",
+    # Pairing Functions
     "compute_spatial_overlap",
     "create_deterministic_pair_id",
     "create_scene_pair",
     "evaluate_pair_compatibility",
     "pair_observations",
+    # Catalog
     "CatalogDiscoveryResult",
     "TemporalCatalog",
 ]
