@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     ASTRA_INDICES_DIR: Path = Field(default=Path("data/indices"), description="Retrieval vector indices and metadata stores")
     ASTRA_RETRIEVAL_MODEL_ID: str = Field(default="remoteclip-vit-b-32", description="Active retrieval embedding model ID")
     ASTRA_CHANGE_RESULTS_DIR: Path = Field(default=Path("data/change_results"), description="Change detection results and masks")
+    ASTRA_CHANGE_CLASSIFICATION_DIR: Path = Field(
+        default=Path("data/change_classification"),
+        description="Change classification evidence and results",
+    )
 
     @field_validator("ASTRA_CORS_ORIGINS", mode="before")
     @classmethod

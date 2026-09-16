@@ -64,9 +64,12 @@ data/indices/*
 !data/indices/.gitkeep
 data/change_results/*
 !data/change_results/.gitkeep
+data/change_classification/*
+!data/change_classification/.gitkeep
 *.npz
 data/manifests/provenance/prov_emb_*.json
 data/manifests/provenance/prov_chg_*.json
+data/manifests/provenance/prov_evi_*.json
 
 # Pretrained model weights and staged checkpoints
 models/staged/*

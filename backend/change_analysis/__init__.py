@@ -31,6 +31,14 @@ from backend.ml.change_detection import (
     NormalizationMethod,
     ThresholdMethod,
 )
+from backend.ml.change_classification import (
+    ChangeClassificationEvidenceService,
+    ChangeEvidence,
+    ChangeEvidenceExtractor,
+    ChangeRegionFeatures,
+    EvidenceConfig,
+    EvidenceFeature,
+)
 
 
 def get_change_analysis_status() -> str:
@@ -64,4 +72,11 @@ __all__ = [
     "ChangeRegion",
     "NormalizationMethod",
     "ThresholdMethod",
+    # M4C-A Change Evidence Extraction
+    "ChangeEvidenceExtractor",
+    "ChangeClassificationEvidenceService",
+    "ChangeEvidence",
+    "ChangeRegionFeatures",
+    "EvidenceConfig",
+    "EvidenceFeature",
 ]
