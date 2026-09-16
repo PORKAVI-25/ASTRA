@@ -50,6 +50,7 @@ class Settings(BaseSettings):
     ASTRA_MODELS_CACHE_DIR: Path = Field(default=Path("models/staged"), description="Staged model weights cache")
     ASTRA_INDICES_DIR: Path = Field(default=Path("data/indices"), description="Retrieval vector indices and metadata stores")
     ASTRA_RETRIEVAL_MODEL_ID: str = Field(default="remoteclip-vit-b-32", description="Active retrieval embedding model ID")
+    ASTRA_CHANGE_RESULTS_DIR: Path = Field(default=Path("data/change_results"), description="Change detection results and masks")
 
     @field_validator("ASTRA_CORS_ORIGINS", mode="before")
     @classmethod

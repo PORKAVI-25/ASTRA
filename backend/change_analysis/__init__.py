@@ -20,6 +20,17 @@ from backend.ml.change import (
     evaluate_pair_compatibility,
     pair_observations,
 )
+from backend.ml.change_detection import (
+    ASTRAPixelDifferenceDetector,
+    ChangeDetectionConfig,
+    ChangeDetectionResult,
+    ChangeDetectionService,
+    ChangeDetector,
+    ChangeMetrics,
+    ChangeRegion,
+    NormalizationMethod,
+    ThresholdMethod,
+)
 
 
 def get_change_analysis_status() -> str:
@@ -43,4 +54,14 @@ __all__ = [
     "pair_observations",
     "CatalogDiscoveryResult",
     "TemporalCatalog",
+    # M4B Change Detection
+    "ChangeDetector",
+    "ASTRAPixelDifferenceDetector",
+    "ChangeDetectionService",
+    "ChangeDetectionConfig",
+    "ChangeDetectionResult",
+    "ChangeMetrics",
+    "ChangeRegion",
+    "NormalizationMethod",
+    "ThresholdMethod",
 ]
