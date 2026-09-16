@@ -1,0 +1,17 @@
+{
+  "provenance_id": "prov_3f5c58a6db379f9e",
+  "target_tile_id": null,
+  "source_scene_id": "synthetic_test_utm_545f364d",
+  "processing_stage": "geospatial_ingestion_and_tiling",
+  "pipeline_version": "0.1.0",
+  "parameters": {
+    "tile_size": 512,
+    "tile_count": 4,
+    "file_hash": "545f364d79983a997b07a7a539cad89fed2f8ef7da41eb1f5a8531b24cdb0cf0",
+    "format": "Standard GeoTIFF",
+    "is_cog": false,
+    "crs": "EPSG:32643"
+  },
+  "executed_by": "astra.ingestion.service",
+  "timestamp": "2026-09-16T05:10:50.921149Z"
+}
