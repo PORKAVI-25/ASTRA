@@ -60,6 +60,10 @@ data/processed/*
 !data/processed/.gitkeep
 data/benchmark/*
 !data/benchmark/.gitkeep
+data/indices/*
+!data/indices/.gitkeep
+*.npz
+data/manifests/provenance/prov_emb_*.json
 
 # Pretrained model weights and staged checkpoints
 models/staged/*

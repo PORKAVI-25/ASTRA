@@ -48,6 +48,8 @@ class Settings(BaseSettings):
     ASTRA_MANIFESTS_DIR: Path = Field(default=Path("data/manifests"), description="Metadata manifests")
     ASTRA_BENCHMARK_DIR: Path = Field(default=Path("data/benchmark"), description="Ground truth benchmark data")
     ASTRA_MODELS_CACHE_DIR: Path = Field(default=Path("models/staged"), description="Staged model weights cache")
+    ASTRA_INDICES_DIR: Path = Field(default=Path("data/indices"), description="Retrieval vector indices and metadata stores")
+    ASTRA_RETRIEVAL_MODEL_ID: str = Field(default="remoteclip-vit-b-32", description="Active retrieval embedding model ID")
 
     @field_validator("ASTRA_CORS_ORIGINS", mode="before")
     @classmethod
