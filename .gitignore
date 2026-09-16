@@ -60,3 +60,12 @@ data/processed/*
 !data/processed/.gitkeep
 data/benchmark/*
 !data/benchmark/.gitkeep
+
+# Pretrained model weights and staged checkpoints
+models/staged/*
+!models/staged/.gitkeep
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.onnx
