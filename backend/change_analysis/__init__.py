@@ -48,6 +48,18 @@ from backend.ml.change_classification import (
     RegionClassification,
     RuleEvaluation,
 )
+from backend.ml.change_suppression import (
+    ArtifactEvaluation,
+    ArtifactType,
+    ChangeSuppressionService,
+    RegionSuppression,
+    SuppressionConfig,
+    SuppressionDecision,
+    SuppressionMetrics,
+    SuppressionResult,
+    evaluate_region_suppression,
+    generate_filtered_change_mask,
+)
 
 
 def get_change_analysis_status() -> str:
@@ -98,4 +110,15 @@ __all__ = [
     "ChangeClassificationMetrics",
     "ClassifierConfig",
     "ChangeClassificationResult",
+    # M4D False-Alarm Suppression
+    "SuppressionDecision",
+    "ArtifactType",
+    "ArtifactEvaluation",
+    "RegionSuppression",
+    "SuppressionMetrics",
+    "SuppressionConfig",
+    "SuppressionResult",
+    "ChangeSuppressionService",
+    "evaluate_region_suppression",
+    "generate_filtered_change_mask",
 ]

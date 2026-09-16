@@ -55,6 +55,10 @@ class Settings(BaseSettings):
         default=Path("data/change_classification"),
         description="Change classification evidence and results",
     )
+    ASTRA_CHANGE_SUPPRESSION_DIR: Path = Field(
+        default=Path("data/change_suppression"),
+        description="False-alarm suppression results and filtered masks",
+    )
 
     @field_validator("ASTRA_CORS_ORIGINS", mode="before")
     @classmethod

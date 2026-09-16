@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from backend.api.v1.endpoints import (
     change_classification,
     change_detection,
+    change_suppression,
     health,
     ingestion,
     retrieval,
@@ -25,3 +26,6 @@ api_router.include_router(change_detection.router, tags=["Change Detection"])
 
 # Temporal change classification & evidence extraction
 api_router.include_router(change_classification.router, tags=["Change Classification"])
+
+# False-alarm suppression & quality assurance
+api_router.include_router(change_suppression.router, tags=["Change Suppression"])
