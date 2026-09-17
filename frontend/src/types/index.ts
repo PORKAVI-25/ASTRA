@@ -1,24 +1,10 @@
 /**
  * ASTRA Frontend Type Definitions
- * Directly mirrors backend geospatial data contracts (ASTRA-DC-v0.1).
+ * Re-exports all raw API contracts and frontend presentation models.
  */
 
-export interface HealthResponse {
-  status: string;
-  version: string;
-  service: string;
-  timestamp: string;
-  environment: string;
-  offline_mode: boolean;
-  modules: Record<string, string>;
-}
-
-export interface GeoBoundingBox {
-  min_lon: number;
-  min_lat: number;
-  max_lon: number;
-  max_lat: number;
-}
+export * from "./api";
+export * from "./models";
 
 export interface TileDimensions {
   width_px: number;
@@ -34,7 +20,12 @@ export interface TileManifest {
   zoom_level: number;
   dimensions: TileDimensions;
   crs: string;
-  bounds_wgs84: GeoBoundingBox;
+  bounds_wgs84: {
+    min_lon: number;
+    min_lat: number;
+    max_lon: number;
+    max_lat: number;
+  };
   acquisition_time: string;
   sensor: string;
   file_path: string;
@@ -48,7 +39,12 @@ export interface SceneManifest {
   platform: string;
   acquisition_time: string;
   crs: string;
-  bounds_wgs84: GeoBoundingBox;
+  bounds_wgs84: {
+    min_lon: number;
+    min_lat: number;
+    max_lon: number;
+    max_lat: number;
+  };
   spatial_resolution_m: number;
   cloud_cover_percentage?: number;
   bands: string[];
@@ -59,7 +55,7 @@ export interface SceneManifest {
 
 export interface ProvenanceRecord {
   provenance_id: string;
-  target_tile_id: string;
+  target_tile_id?: string | null;
   source_scene_id: string;
   processing_stage: string;
   pipeline_version: string;
