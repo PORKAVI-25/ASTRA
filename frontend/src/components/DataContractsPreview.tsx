@@ -53,7 +53,7 @@ export const DataContractsPreview: React.FC = () => {
             <span>Data Contract Inspector (ASTRA-DC-v0.1)</span>
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Preserving CRS, bounding boxes, timestamps, and immutable scene-tile linkages (Rules 3, 4, 5, 9)
+            Preserving CRS, bounding boxes, timestamps, and cryptographic scene-tile linkages (Rules 3, 4, 5, 9)
           </p>
         </div>
 

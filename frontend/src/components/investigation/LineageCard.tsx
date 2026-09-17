@@ -21,7 +21,7 @@ export const LineageCard: React.FC<LineageCardProps> = ({ summary }) => {
               Cryptographic Lineage & Provenance Ledger
             </h3>
             <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
-              Rule 5 Immutable
+              Rule 5 Cryptographic Provenance
             </span>
           </div>
           <p className="text-xs text-slate-400 font-mono mt-0.5">

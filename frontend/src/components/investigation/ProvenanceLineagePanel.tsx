@@ -172,7 +172,7 @@ export const ProvenanceLineagePanel: React.FC<ProvenanceLineagePanelProps> = ({ 
     {
       stageId: "M4F",
       title: "M4F Investigation Dossier",
-      subtitle: "Immutable Root Dossier",
+      subtitle: "Root Dossier Integrity",
       icon: "📑",
       artifactId: summary.investigationId,
       hash: summary.contentHash,

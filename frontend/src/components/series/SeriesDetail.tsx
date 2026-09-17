@@ -2,7 +2,7 @@ import React from "react";
 import type { TemporalSeriesSummary } from "../../types/models";
 import { ObservationTimelineItem } from "./ObservationTimelineItem";
 
-interface SeriesDetailProps {
+export interface SeriesDetailProps {
   series: TemporalSeriesSummary | null;
   isLoading: boolean;
   onSelectSeries?: (seriesId: string) => void;
@@ -17,7 +17,7 @@ export const SeriesDetail: React.FC<SeriesDetailProps> = ({
   if (isLoading) {
     return (
       <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-8 flex flex-col items-center justify-center min-h-[420px] text-center font-mono animate-pulse">
-        <div className="w-10 h-10 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <div className="w-10 h-10 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mb-4" />
         <div className="text-sm text-slate-300 font-semibold mb-1">Loading Series Observations…</div>
         <div className="text-xs text-slate-400">Fetching chronological metadata from catalog</div>
       </div>
@@ -45,13 +45,13 @@ export const SeriesDetail: React.FC<SeriesDetailProps> = ({
     <div className="space-y-6 text-left font-sans">
       {/* Series Overview Header Card */}
       <div className="bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
             <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-cyan-950/80 text-cyan-300 border border-cyan-800 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-              <span>Active Target Series</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span>Target Series Grounded</span>
             </div>
             <h2 className="text-xl font-bold font-mono text-white tracking-tight break-all">
               {series.seriesId}
@@ -68,7 +68,7 @@ export const SeriesDetail: React.FC<SeriesDetailProps> = ({
             {onLaunchInvestigation && (
               <button
                 onClick={() => onLaunchInvestigation(series.seriesId)}
-                className="inline-flex items-center space-x-1 px-3 py-1 text-xs font-mono font-bold rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+                className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
                 title="Launch multi-epoch investigation on this series"
               >
                 <span>🎯 Launch Investigation</span>

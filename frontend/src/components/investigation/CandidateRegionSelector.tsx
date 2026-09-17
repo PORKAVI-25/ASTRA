@@ -4,7 +4,7 @@ import { transformCandidateChange } from "../../services/transformers";
 import type { ChangeDetectionResult, ScenePair } from "../../types/api";
 import type { CandidateChange } from "../../types/models";
 
-interface CandidateRegionSelectorProps {
+export interface CandidateRegionSelectorProps {
   selectedPair: ScenePair | null;
   selectedRegionId: string | null;
   onSelectCandidate: (candidate: CandidateChange) => void;
@@ -126,7 +126,7 @@ export const CandidateRegionSelector: React.FC<CandidateRegionSelectorProps> = (
           {maskUrl && (
             <button
               onClick={() => setShowMaskPreview(!showMaskPreview)}
-              className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 transition-colors"
+              className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 transition-colors cursor-pointer"
             >
               {showMaskPreview ? "Hide Mask" : "Preview Mask"}
             </button>
@@ -134,7 +134,7 @@ export const CandidateRegionSelector: React.FC<CandidateRegionSelectorProps> = (
           <button
             onClick={handleManualRerun}
             disabled={isLoading}
-            className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors disabled:opacity-50"
+            className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isLoading ? "Running…" : "Re-run M4B"}
           </button>
@@ -144,7 +144,7 @@ export const CandidateRegionSelector: React.FC<CandidateRegionSelectorProps> = (
       {/* Loading state */}
       {isLoading && (
         <div className="py-8 text-center font-mono text-xs text-slate-400 space-y-2 animate-pulse">
-          <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto" />
           <div>Executing M4B change detection & component analysis…</div>
         </div>
       )}
@@ -221,6 +221,14 @@ export const CandidateRegionSelector: React.FC<CandidateRegionSelectorProps> = (
               const bbox = cand.bboxPx;
               const wgs = cand.bboxWgs84;
 
+              // Local proportional SVG preview coordinates (tile grid 0-512)
+              const svgX = Math.max(5, Math.min(85, (bbox.minCol / 512) * 100));
+              const svgY = Math.max(5, Math.min(85, (bbox.minRow / 512) * 100));
+              const svgW = Math.max(8, Math.min(40, (bbox.widthPx / 512) * 100));
+              const svgH = Math.max(8, Math.min(40, (bbox.heightPx / 512) * 100));
+              const svgCx = svgX + svgW / 2;
+              const svgCy = svgY + svgH / 2;
+
               return (
                 <div
                   key={cand.regionId}
@@ -235,9 +243,9 @@ export const CandidateRegionSelector: React.FC<CandidateRegionSelectorProps> = (
                     <div className="flex items-center space-x-2">
                       <span
                         className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-                          isSelected ? "bg-cyan-400 animate-pulse" : "bg-slate-600"
+                          isSelected ? "bg-cyan-400 shadow-sm shadow-cyan-400 animate-pulse" : "bg-slate-600"
                         }`}
-                      ></span>
+                      />
                       <span className="text-sm font-bold text-white tracking-wide">
                         {cand.regionId}
                       </span>
@@ -261,35 +269,75 @@ export const CandidateRegionSelector: React.FC<CandidateRegionSelectorProps> = (
                     </div>
                   </div>
 
-                  {/* Coordinates & Geometry Details */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-                    <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/60">
-                      <div className="text-[10px] uppercase text-slate-400 font-semibold mb-0.5">
-                        Pixel Bounding Box
-                      </div>
-                      <div className="text-slate-300">
-                        [{bbox.minRow}, {bbox.minCol}] to [{bbox.maxRow}, {bbox.maxCol}]
-                      </div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">
-                        Dimensions: {bbox.widthPx} × {bbox.heightPx} px • Centroid: [
-                        {cand.centroidPx[0].toFixed(1)}, {cand.centroidPx[1].toFixed(1)}]
-                      </div>
+                  {/* Footprint Preview Thumbnail + Coordinates */}
+                  <div className="flex items-center gap-3 pt-1">
+                    {/* SVG Vector Footprint Thumbnail */}
+                    <div className="w-14 h-14 flex-shrink-0 bg-slate-950 border border-slate-800 rounded-lg p-1 relative flex items-center justify-center">
+                      <svg
+                        className="w-full h-full overflow-visible"
+                        viewBox="0 0 100 100"
+                        aria-label={`Footprint thumbnail for ${cand.regionId}`}
+                      >
+                        {/* Grid boundary */}
+                        <rect
+                          x="0"
+                          y="0"
+                          width="100"
+                          height="100"
+                          fill="#030712"
+                          stroke="#1f2937"
+                          strokeWidth="1"
+                        />
+                        {/* Candidate bounding box */}
+                        <rect
+                          x={svgX}
+                          y={svgY}
+                          width={svgW}
+                          height={svgH}
+                          fill={isSelected ? "rgba(6,182,212,0.25)" : "rgba(16,185,129,0.15)"}
+                          stroke={isSelected ? "#22d3ee" : "#10b981"}
+                          strokeWidth="2"
+                        />
+                        {/* Centroid marker */}
+                        <circle
+                          cx={svgCx}
+                          cy={svgCy}
+                          r="3"
+                          fill={isSelected ? "#38bdf8" : "#34d399"}
+                        />
+                      </svg>
                     </div>
 
-                    <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/60">
-                      <div className="text-[10px] uppercase text-slate-400 font-semibold mb-0.5">
-                        Geographic Extent (WGS84)
-                      </div>
-                      {wgs ? (
-                        <div className="text-slate-300">
-                          Lon: [{wgs.minLon.toFixed(4)}°, {wgs.maxLon.toFixed(4)}°]
-                          <div className="text-[10px] text-slate-400 mt-0.5">
-                            Lat: [{wgs.minLat.toFixed(4)}°, {wgs.maxLat.toFixed(4)}°]
-                          </div>
+                    {/* Coordinates & Geometry Details */}
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                      <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/60">
+                        <div className="text-[10px] uppercase text-slate-400 font-semibold mb-0.5">
+                          Pixel Bounding Box
                         </div>
-                      ) : (
-                        <div className="text-slate-400 italic">Projected from pixel grid</div>
-                      )}
+                        <div className="text-slate-300">
+                          [{bbox.minRow}, {bbox.minCol}] to [{bbox.maxRow}, {bbox.maxCol}]
+                        </div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">
+                          {bbox.widthPx} × {bbox.heightPx} px • Centroid: [
+                          {cand.centroidPx[0].toFixed(1)}, {cand.centroidPx[1].toFixed(1)}]
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/60">
+                        <div className="text-[10px] uppercase text-slate-400 font-semibold mb-0.5">
+                          Geographic Extent (WGS84)
+                        </div>
+                        {wgs ? (
+                          <div className="text-slate-300">
+                            Lon: [{wgs.minLon.toFixed(4)}°, {wgs.maxLon.toFixed(4)}°]
+                            <div className="text-[10px] text-slate-400 mt-0.5">
+                              Lat: [{wgs.minLat.toFixed(4)}°, {wgs.maxLat.toFixed(4)}°]
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-slate-400 italic">Projected from pixel grid</div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

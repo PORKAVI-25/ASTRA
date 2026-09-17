@@ -45,7 +45,7 @@ const MODULES: ModuleInfo[] = [
   {
     key: "provenance",
     name: "Provenance & Lineage",
-    description: "Immutable parent scene links, CRS, bounding boxes, and SHA-256 signatures.",
+    description: "Cryptographic parent scene links, CRS, bounding boxes, and SHA-256 signatures.",
     phase: "Phase 0 - Foundation",
     ruleAnchor: "Scene Linkage (Rule 4 & 5)",
     badgeColor: "text-emerald-400 bg-emerald-950/60 border-emerald-800",

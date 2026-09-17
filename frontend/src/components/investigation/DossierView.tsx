@@ -26,9 +26,23 @@ export const DossierView: React.FC<DossierViewProps> = ({
   onBackToLauncher,
   onLoadDemoDossier,
 }) => {
+  const urlSubTab = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("subtab") : null;
   const [activeSubTab, setActiveSubTab] = useState<
     "overview" | "timeline" | "spatial" | "evidence" | "review" | "stages" | "caveats" | "lineage"
-  >("overview");
+  >(() => {
+    if (
+      urlSubTab === "timeline" ||
+      urlSubTab === "spatial" ||
+      urlSubTab === "evidence" ||
+      urlSubTab === "review" ||
+      urlSubTab === "stages" ||
+      urlSubTab === "caveats" ||
+      urlSubTab === "lineage"
+    ) {
+      return urlSubTab;
+    }
+    return "overview";
+  });
   const [copiedHash, setCopiedHash] = useState<boolean>(false);
   const [, setReviewUpdateCounter] = useState<number>(0);
 
@@ -45,7 +59,7 @@ export const DossierView: React.FC<DossierViewProps> = ({
         <div className="max-w-md space-y-1">
           <h3 className="text-base font-bold text-slate-200">No Investigation Dossier Loaded</h3>
           <p className="text-xs text-slate-400">
-            Execute a multi-temporal pipeline run in the Investigation Launcher to generate an immutable investigation dossier.
+            Execute a multi-temporal pipeline run in the Investigation Launcher to generate an investigation dossier with cryptographic lineage.
           </p>
         </div>
 
@@ -109,7 +123,7 @@ export const DossierView: React.FC<DossierViewProps> = ({
             </span>
           </div>
           <p className="text-xs text-slate-400 font-mono mt-1">
-            Official immutable multi-epoch investigation dossier containing evidentiary justification and temporal bounds.
+            Official multi-epoch investigation dossier with verified cryptographic integrity and temporal bounds.
           </p>
         </div>
 

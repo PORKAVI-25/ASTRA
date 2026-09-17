@@ -1017,7 +1017,7 @@ export function getM4dDecisionDetails(
         statusDescription:
           "Conservative multi-evidence physical gate was fully satisfied; candidate screened out.",
         semanticCaveat:
-          "SUPPRESSED candidates are preserved in serialized outputs and immutable provenance records (Zero Silent Drops).",
+          "SUPPRESSED candidates are preserved in serialized outputs and cryptographic provenance records (Zero Silent Drops).",
       };
     case "INSUFFICIENT_EVIDENCE":
       return {
