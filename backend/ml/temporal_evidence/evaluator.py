@@ -249,55 +249,87 @@ def evaluate_node_support(
             data_limitations=limitations,
         )
 
-    # 5. Extract upstream M4D suppression outcome
+    # 5. Determine target region ID for this pair
+    is_discovery_pair = (pairwise_input.scene_pair_id == candidate_ref.scene_pair_id)
+    if is_discovery_pair:
+        target_region_id: Optional[str] = candidate_ref.region_id
+    elif pairwise_input.matched_region_id is not None:
+        target_region_id = pairwise_input.matched_region_id
+    elif pairwise_input.change_detection_result and any(
+        r.region_id == candidate_ref.region_id for r in pairwise_input.change_detection_result.regions
+    ):
+        # Direct unit test calling M4E without orchestrator adapter, where region_id was preserved
+        target_region_id = candidate_ref.region_id
+    else:
+        target_region_id = None
+
+    # Extract upstream M4D suppression outcome
     supp_res = pairwise_input.suppression_result
     region_supp: Optional[RegionSuppression] = None
-    if supp_res:
+    if supp_res and target_region_id is not None:
         for r in supp_res.regions:
-            if r.region_id == candidate_ref.region_id:
+            if r.region_id == target_region_id:
                 region_supp = r
                 break
-        if region_supp is None and supp_res.regions:
-            # Match first region if only one exists in pairwise result
-            region_supp = supp_res.regions[0]
 
     # 6. Extract upstream M4B ChangeRegion for S_chg
     cdr = pairwise_input.change_detection_result
     target_region: Optional[ChangeRegion] = None
-    if cdr:
+    if cdr and target_region_id is not None:
         for r in cdr.regions:
-            if r.region_id == candidate_ref.region_id:
+            if r.region_id == target_region_id:
                 target_region = r
                 break
-        if target_region is None and cdr.regions:
-            target_region = cdr.regions[0]
 
-    # Evaluate spatial correspondence with observed target region
-    spatial_corr = evaluate_spatial_correspondence(
-        candidate_bbox_wgs84=candidate_region.bbox_wgs84 if candidate_region else None,
-        candidate_centroid_wgs84=candidate_region.centroid_wgs84 if candidate_region else None,
-        candidate_bbox_px=candidate_region.bbox_px if candidate_region else None,
-        candidate_centroid_px=candidate_region.centroid_px if candidate_region else None,
-        candidate_crs=observation.crs,
-        target_bbox_wgs84=target_region.bbox_wgs84 if target_region else observation.bounds_wgs84,
-        target_centroid_wgs84=target_region.centroid_wgs84 if target_region else None,
-        target_bbox_px=target_region.bbox_px if target_region else None,
-        target_centroid_px=target_region.centroid_px if target_region else None,
-        target_crs=observation.crs,
-        min_bbox_iou_threshold=config.min_bbox_iou_threshold,
-        max_centroid_distance_m=config.max_centroid_distance_m,
-    )
+    # Evaluate or adopt spatial correspondence with observed target region
+    if pairwise_input.spatial_correspondence is not None:
+        spatial_corr = pairwise_input.spatial_correspondence
+    elif target_region is not None:
+        spatial_corr = evaluate_spatial_correspondence(
+            candidate_bbox_wgs84=candidate_region.bbox_wgs84 if candidate_region else None,
+            candidate_centroid_wgs84=candidate_region.centroid_wgs84 if candidate_region else None,
+            candidate_bbox_px=candidate_region.bbox_px if candidate_region else None,
+            candidate_centroid_px=candidate_region.centroid_px if candidate_region else None,
+            candidate_crs=observation.crs,
+            target_bbox_wgs84=target_region.bbox_wgs84,
+            target_centroid_wgs84=target_region.centroid_wgs84,
+            target_bbox_px=target_region.bbox_px,
+            target_centroid_px=target_region.centroid_px,
+            target_crs=observation.crs,
+            min_bbox_iou_threshold=config.min_bbox_iou_threshold,
+            max_centroid_distance_m=config.max_centroid_distance_m,
+        )
+    else:
+        spatial_corr = SpatialCorrespondence(
+            status=SpatialCorrespondenceStatus.DISJOINT,
+            relationship=CorrespondenceRelationship.NONE,
+            is_spatially_compatible=False,
+            iou_wgs84=0.0,
+            centroid_distance_m=None,
+            centroid_distance_px=None,
+            crs_match=False,
+            gsd_match=False,
+        )
+
+    # Diagnostic recording of correspondence outcome
+    if target_region_id is None:
+        if spatial_corr.relationship == CorrespondenceRelationship.AMBIGUOUS:
+            limitations.append("Ambiguous spatial correspondence across multiple candidate regions in this epoch.")
+            reasons.append("Ambiguous spatial correspondence in this epoch; candidate could not be matched reliably.")
+        elif spatial_corr.status == SpatialCorrespondenceStatus.INSUFFICIENT_METADATA:
+            limitations.append("Insufficient georeferencing metadata to evaluate spatial correspondence.")
+            reasons.append("Insufficient georeferencing metadata to match candidate region.")
+        else:
+            reasons.append("No corresponding change region detected at candidate location in this epoch.")
 
     # Extract M4C-B classification if available
     cls_res = pairwise_input.classification
     region_cls: Optional[RegionClassification] = None
-    if cls_res:
+    if cls_res and target_region_id is not None:
         for c in cls_res.classifications:
-            if c.region_id == candidate_ref.region_id:
+            if c.region_id == target_region_id:
                 region_cls = c
                 break
-        if region_cls is None and cls_res.classifications:
-            region_cls = cls_res.classifications[0]
 
     category_observed: Optional[ChangeCategory] = region_cls.category if region_cls else None
     category_confidence: Optional[ConfidenceTier] = region_cls.confidence_tier if region_cls else None
@@ -310,9 +342,9 @@ def evaluate_node_support(
         # Valid M4B executed and explicitly detected zero regions
         s_chg = 0.0
     else:
-        # M4B missing or failed
         s_chg = 0.0
-        limitations.append("M4B ChangeDetectionResult is missing or malformed; change signal unavailable.")
+        if target_region_id is not None:
+            limitations.append("M4B ChangeDetectionResult is missing or malformed; change signal unavailable.")
 
     # 7. Apply M4D Gating Factor
     m4d_decision = region_supp.decision if region_supp else SuppressionDecision.INSUFFICIENT_EVIDENCE
@@ -323,7 +355,8 @@ def evaluate_node_support(
         reasons.append("Screened out by upstream M4D as false alarm artifact; zero temporal support.")
     elif m4d_decision == SuppressionDecision.INSUFFICIENT_EVIDENCE:
         g_m4d = 0.00
-        reasons.append("Upstream M4D reported insufficient evidence / severe data limitation; zero temporal support.")
+        if target_region_id is not None:
+            reasons.append("Upstream M4D reported insufficient evidence / severe data limitation; zero temporal support.")
     elif m4d_decision == SuppressionDecision.FLAGGED:
         g_m4d = 0.40
         reasons.append("Upstream M4D flagged potential artifact risk; discounted support and barred from earliest support.")

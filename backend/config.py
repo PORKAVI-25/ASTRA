@@ -63,6 +63,10 @@ class Settings(BaseSettings):
         default=Path("data/temporal_evidence"),
         description="Temporal evidence evaluation results and onset trajectories",
     )
+    ASTRA_INVESTIGATIONS_DIR: Path = Field(
+        default=Path("data/investigations"),
+        description="Investigation dossiers and audit results",
+    )
 
     @field_validator("ASTRA_CORS_ORIGINS", mode="before")
     @classmethod

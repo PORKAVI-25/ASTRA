@@ -72,7 +72,7 @@ class ChangeClassificationEvidenceService:
         # Record immutable provenance record
         prov_record = ProvenanceRecord(
             provenance_id=evidence.provenance_id,
-            source_scene_id=scene_pair.pair_id,
+            source_scene_id=scene_pair.earlier_observation.scene_id,
             target_tile_id=scene_pair.earlier_observation.tile_id,
             processing_stage="change_evidence_extraction",
             pipeline_version="0.1.0",
@@ -81,6 +81,8 @@ class ChangeClassificationEvidenceService:
                 "extractor_version": evidence.extractor_version,
                 "scene_pair_id": evidence.scene_pair_id,
                 "change_detection_result_id": evidence.change_detection_result_id,
+                "earlier_scene_id": scene_pair.earlier_observation.scene_id,
+                "later_scene_id": scene_pair.later_observation.scene_id,
                 "earlier_observation_id": scene_pair.earlier_observation.observation_id,
                 "later_observation_id": scene_pair.later_observation.observation_id,
                 "region_count": len(evidence.regions),
@@ -133,8 +135,8 @@ class ChangeClassificationEvidenceService:
         # Record immutable provenance record conforming to ASTRA-DC-v0.1
         prov_record = ProvenanceRecord(
             provenance_id=classification.provenance_id,
-            source_scene_id=classification.scene_pair_id,
-            target_tile_id=None,
+            source_scene_id=evidence.temporal.earlier_scene_id,
+            target_tile_id=evidence.temporal.earlier_tile_id,
             processing_stage="change_type_classification",
             pipeline_version="0.1.0",
             parameters={
@@ -143,6 +145,8 @@ class ChangeClassificationEvidenceService:
                 "evidence_id": classification.evidence_id,
                 "scene_pair_id": classification.scene_pair_id,
                 "change_detection_result_id": classification.change_detection_result_id,
+                "earlier_scene_id": evidence.temporal.earlier_scene_id,
+                "later_scene_id": evidence.temporal.later_scene_id,
                 "total_regions": classification.metrics.total_regions,
                 "category_counts": classification.metrics.category_counts,
                 "config": classification.config.model_dump(),

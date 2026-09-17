@@ -155,6 +155,36 @@ class CandidateRegionRef(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class SpatialCorrespondence(BaseModel):
+    """Complete spatial alignment and topological correspondence bundle."""
+
+    status: SpatialCorrespondenceStatus = Field(
+        ..., description="Geometric comparison method applied"
+    )
+    relationship: CorrespondenceRelationship = Field(
+        default=CorrespondenceRelationship.MATCHED,
+        description="Topological relationship between candidate and observed regions",
+    )
+    is_spatially_compatible: bool = Field(
+        ..., description="True if correspondence meets minimum spatial thresholds"
+    )
+    iou_wgs84: float = Field(
+        default=0.0, ge=0.0, le=1.0,
+        description="Metric-projected 2D axis-aligned BOUNDING-BOX IoU from WGS84 source bboxes (NOT mask IoU)",
+    )
+    centroid_distance_m: Optional[float] = Field(
+        default=None, ge=0.0, description="Geodesic distance between centroids in meters"
+    )
+    centroid_distance_px: Optional[float] = Field(
+        default=None, ge=0.0,
+        description="Pixel distance; present ONLY when CRS, GSD, and grid origin match identically",
+    )
+    crs_match: bool = Field(default=False, description="True if CRS strings are identical")
+    gsd_match: bool = Field(default=False, description="True if ground sample distances match within 1%")
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class PairwiseTemporalEvidenceInput(BaseModel):
     """Complete upstream pipeline lineage bundle for a single evaluated scene pair."""
 
@@ -186,36 +216,12 @@ class PairwiseTemporalEvidenceInput(BaseModel):
     classification: Optional[ChangeClassificationResult] = Field(
         default=None, description="Loaded M4C-B ChangeClassificationResult"
     )
-
-    model_config = ConfigDict(extra="forbid")
-
-
-class SpatialCorrespondence(BaseModel):
-    """Complete spatial alignment and topological correspondence bundle."""
-
-    status: SpatialCorrespondenceStatus = Field(
-        ..., description="Geometric comparison method applied"
+    matched_region_id: Optional[str] = Field(
+        default=None, description="Resolved corresponding region identifier in target pair"
     )
-    relationship: CorrespondenceRelationship = Field(
-        default=CorrespondenceRelationship.MATCHED,
-        description="Topological relationship between candidate and observed regions",
+    spatial_correspondence: Optional[SpatialCorrespondence] = Field(
+        default=None, description="Explicit resolved spatial correspondence for candidate in this pair"
     )
-    is_spatially_compatible: bool = Field(
-        ..., description="True if correspondence meets minimum spatial thresholds"
-    )
-    iou_wgs84: float = Field(
-        default=0.0, ge=0.0, le=1.0,
-        description="Metric-projected 2D axis-aligned BOUNDING-BOX IoU from WGS84 source bboxes (NOT mask IoU)",
-    )
-    centroid_distance_m: Optional[float] = Field(
-        default=None, ge=0.0, description="Geodesic distance between centroids in meters"
-    )
-    centroid_distance_px: Optional[float] = Field(
-        default=None, ge=0.0,
-        description="Pixel distance; present ONLY when CRS, GSD, and grid origin match identically",
-    )
-    crs_match: bool = Field(default=False, description="True if CRS strings are identical")
-    gsd_match: bool = Field(default=False, description="True if ground sample distances match within 1%")
 
     model_config = ConfigDict(extra="forbid")
 

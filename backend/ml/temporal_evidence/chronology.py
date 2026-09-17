@@ -121,12 +121,20 @@ def align_pairwise_evidence_to_observations(
 
     # 2. Try matching observation IDs encoded within scene_pair_id
     if discovery_earlier_obs_id is None or discovery_later_obs_id is None:
-        for obs in observations:
-            if obs.observation_id in discovery_pair_evidence.scene_pair_id:
-                if discovery_earlier_obs_id is None:
+        if "__" in discovery_pair_evidence.scene_pair_id:
+            earlier_part, later_part = discovery_pair_evidence.scene_pair_id.split("__", 1)
+            for obs in observations:
+                if obs.observation_id in earlier_part:
                     discovery_earlier_obs_id = obs.observation_id
-                elif discovery_later_obs_id is None:
+                if obs.observation_id in later_part:
                     discovery_later_obs_id = obs.observation_id
+        else:
+            for obs in observations:
+                if obs.observation_id in discovery_pair_evidence.scene_pair_id:
+                    if discovery_earlier_obs_id is None:
+                        discovery_earlier_obs_id = obs.observation_id
+                    elif discovery_later_obs_id is None:
+                        discovery_later_obs_id = obs.observation_id
 
     # 3. Fallback based on series length
     if discovery_earlier_obs_id is None or discovery_later_obs_id is None:
@@ -164,10 +172,17 @@ def align_pairwise_evidence_to_observations(
 
         # B. Try matching by observation ID in scene_pair_id
         if matched_later_id is None:
-            for obs in observations:
-                if obs.observation_id != discovery_earlier_obs_id and obs.observation_id in p.scene_pair_id:
-                    matched_later_id = obs.observation_id
-                    break
+            if "__" in p.scene_pair_id:
+                _, later_part = p.scene_pair_id.split("__", 1)
+                for obs in observations:
+                    if obs.observation_id in later_part:
+                        matched_later_id = obs.observation_id
+                        break
+            if matched_later_id is None:
+                for obs in observations:
+                    if obs.observation_id != discovery_earlier_obs_id and obs.observation_id in p.scene_pair_id:
+                        matched_later_id = obs.observation_id
+                        break
 
         # C. Fallback: match by chronological index
         if matched_later_id is None:

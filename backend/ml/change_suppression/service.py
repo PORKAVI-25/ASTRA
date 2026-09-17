@@ -199,10 +199,26 @@ class ChangeSuppressionService:
         json_file.write_text(suppression_result.model_dump_json(indent=2), encoding="utf-8")
 
         # Record immutable provenance record conforming to ASTRA-DC-v0.1
+        source_scene = (
+            scene_pair.earlier_observation.scene_id
+            if scene_pair
+            else (evidence.temporal.earlier_scene_id if evidence.temporal else "unknown_scene")
+        )
+        target_tile = (
+            scene_pair.earlier_observation.tile_id
+            if scene_pair
+            else (evidence.temporal.earlier_tile_id if evidence.temporal else None)
+        )
+        later_scene = (
+            scene_pair.later_observation.scene_id
+            if scene_pair
+            else (evidence.temporal.later_scene_id if evidence.temporal else "unknown_scene")
+        )
+
         prov_record = ProvenanceRecord(
             provenance_id=provenance_id,
-            source_scene_id=evidence.scene_pair_id,
-            target_tile_id=None,
+            source_scene_id=source_scene,
+            target_tile_id=target_tile,
             processing_stage="false_alarm_suppression",
             pipeline_version="0.1.0",
             parameters={
@@ -212,6 +228,8 @@ class ChangeSuppressionService:
                 "classification_id": classification.classification_id if classification else None,
                 "change_detection_result_id": evidence.change_detection_result_id,
                 "scene_pair_id": evidence.scene_pair_id,
+                "earlier_scene_id": source_scene,
+                "later_scene_id": later_scene,
                 "total_input_regions": total_input,
                 "retained_count": retained_cnt,
                 "flagged_count": flagged_cnt,

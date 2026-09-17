@@ -582,6 +582,11 @@ def test_15_deterministic_repeatability_and_provenance(temp_suppression_dirs):
     with open(prov_file, "r", encoding="utf-8") as f:
         prov_data = json.load(f)
         assert prov_data["provenance_id"] == res1.provenance_id
+        assert prov_data["source_scene_id"] == evi.temporal.earlier_scene_id
+        assert not prov_data["source_scene_id"].startswith("pair_")
+        assert prov_data["parameters"]["scene_pair_id"] == evi.scene_pair_id
+        assert prov_data["parameters"]["earlier_scene_id"] == evi.temporal.earlier_scene_id
+        assert prov_data["parameters"]["later_scene_id"] == evi.temporal.later_scene_id
         assert prov_data["processing_stage"] == "false_alarm_suppression"
 
 

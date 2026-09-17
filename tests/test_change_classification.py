@@ -492,6 +492,11 @@ def test_14_service_persistence_and_provenance(temp_cls_dirs):
     assert prov_file.exists()
     prov_data = json.loads(prov_file.read_text(encoding="utf-8"))
     assert prov_data["provenance_id"] == classification.provenance_id
+    assert prov_data["source_scene_id"] == evi.temporal.earlier_scene_id
+    assert not prov_data["source_scene_id"].startswith("pair_")
+    assert prov_data["parameters"]["scene_pair_id"] == evi.scene_pair_id
+    assert prov_data["parameters"]["earlier_scene_id"] == evi.temporal.earlier_scene_id
+    assert prov_data["parameters"]["later_scene_id"] == evi.temporal.later_scene_id
     assert prov_data["processing_stage"] == "change_type_classification"
     assert prov_data["executed_by"] == "astra.ml.change_classification.classifier"
     assert "input_hashes" in prov_data["parameters"]
