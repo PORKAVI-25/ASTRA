@@ -8,6 +8,7 @@ import logging
 from typing import Optional
 from fastapi import APIRouter, HTTPException, status
 
+from backend.ml.change_classification.types import EvidenceConfig
 from backend.orchestrator.service import ASTRAPipelineOrchestrator
 from backend.orchestrator.types import (
     InvestigationDossier,
@@ -46,16 +47,30 @@ def set_pipeline_orchestrator(orchestrator: Optional[ASTRAPipelineOrchestrator])
 def investigate_pipeline(request: InvestigationRequest) -> InvestigationDossier:
     """Executes deterministic end-to-end multi-temporal investigation."""
     orchestrator = get_pipeline_orchestrator()
+    if request.evidence_config is None:
+        request = request.model_copy(
+            update={"evidence_config": EvidenceConfig(band_mapping={"red": 0, "green": 1, "blue": 2})}
+        )
     try:
         return orchestrator.run_investigation(request)
     except InvestigationPipelineError as e:
         logger.warning("Pipeline orchestration failed at stage '%s': %s", e.stage, e.message)
+        error_code = "VALIDATION_ERROR" if e.stage in [
+            "series_resolution",
+            "discovery_pair_resolution",
+            "candidate_region_validation",
+            "chronology_validation",
+        ] else "PIPELINE_ERROR"
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={
-                "error": "InvestigationPipelineError",
-                "stage": e.stage,
+                "error": error_code,
                 "message": e.message,
+                "details": {
+                    "stage": e.stage,
+                    "stage_result": e.stage_result.model_dump() if e.stage_result else None,
+                },
+                "stage": e.stage,
                 "stage_result": e.stage_result.model_dump() if e.stage_result else None,
             },
         )
@@ -63,11 +78,19 @@ def investigate_pipeline(request: InvestigationRequest) -> InvestigationDossier:
         logger.warning("Validation error during pipeline orchestration: %s", str(e))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"error": "ValueError", "message": str(e)},
+            detail={
+                "error": "VALIDATION_ERROR",
+                "message": str(e),
+                "details": {},
+            },
         )
     except Exception as e:
         logger.error("Unhandled error during pipeline orchestration: %s", str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"error": "InternalServerError", "message": str(e)},
+            detail={
+                "error": "INTERNAL_SERVER_ERROR",
+                "message": "An internal error occurred during pipeline orchestration. Please check server logs.",
+                "details": {},
+            },
         )

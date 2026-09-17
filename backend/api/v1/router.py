@@ -9,6 +9,7 @@ from backend.api.v1.endpoints import (
     ingestion,
     pipeline,
     retrieval,
+    temporal,
     temporal_evidence,
 )
 
@@ -34,6 +35,9 @@ api_router.include_router(change_suppression.router, tags=["Change Suppression"]
 
 # Temporal evidence reasoning & earliest support
 api_router.include_router(temporal_evidence.router, tags=["Temporal Evidence"])
+
+# Temporal series & scene pairs discovery
+api_router.include_router(temporal.router, tags=["Temporal Series & Pairs"])
 
 # End-to-end pipeline orchestration
 api_router.include_router(pipeline.router, tags=["Pipeline Orchestration"])
