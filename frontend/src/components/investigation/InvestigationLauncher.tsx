@@ -65,9 +65,14 @@ export const InvestigationLauncher: React.FC<InvestigationLauncherProps> = ({
         const mapped = raw.map(transformTemporalSeries);
         setInternalSeriesList(mapped);
         setInternalSeriesId((prev) => {
-          if (prev) return prev;
+          if (prev) {
+            const existing = mapped.find((s) => s.seriesId === prev);
+            if (existing && existing.observationCount >= 2) return prev;
+          }
           const preferred =
-            mapped.find((s) => s.observationCount >= 4) || mapped[0];
+            mapped.find((s) => s.observationCount >= 4) ||
+            mapped.find((s) => s.observationCount >= 2) ||
+            mapped[0];
           return preferred ? preferred.seriesId : "";
         });
       })
@@ -81,6 +86,10 @@ export const InvestigationLauncher: React.FC<InvestigationLauncherProps> = ({
     propSeriesList && propSeriesList.length > 0 ? propSeriesList : internalSeriesList;
 
   const seriesId =
+    (internalSeriesId && seriesList.find((s) => s.seriesId === internalSeriesId && s.observationCount >= 2)?.seriesId) ||
+    (propSelectedSeries && propSelectedSeries.observationCount >= 2 ? propSelectedSeries.seriesId : "") ||
+    (initialSeriesId && seriesList.find((s) => s.seriesId === initialSeriesId && s.observationCount >= 2)?.seriesId) ||
+    seriesList.find((s) => s.observationCount >= 2)?.seriesId ||
     internalSeriesId ||
     propSelectedSeries?.seriesId ||
     initialSeriesId ||
@@ -95,6 +104,10 @@ export const InvestigationLauncher: React.FC<InvestigationLauncherProps> = ({
   const candidateRegionId = selectedCandidate?.regionId || "";
 
   const handleSeriesChange = (newId: string) => {
+    const selected = seriesList.find((s) => s.seriesId === newId);
+    if (selected && selected.observationCount < 2) {
+      return;
+    }
     setInternalSeriesId(newId);
     setSelectedPairRaw(null);
     setSelectedPairSummary(null);
@@ -189,11 +202,22 @@ export const InvestigationLauncher: React.FC<InvestigationLauncherProps> = ({
             <option value="" disabled>
               Select a series to investigate…
             </option>
-            {seriesList.map((s) => (
-              <option key={s.seriesId} value={s.seriesId}>
-                {s.seriesId} ({s.observationCount} epochs, {s.timespanDays}d)
-              </option>
-            ))}
+            {seriesList.map((s) => {
+              const isUnavailable = s.observationCount < 2;
+              return (
+                <option
+                  key={s.seriesId}
+                  value={s.seriesId}
+                  disabled={isUnavailable}
+                  className={isUnavailable ? "text-slate-500 bg-slate-900" : "text-slate-200 bg-slate-950"}
+                >
+                  {s.seriesId}{" "}
+                  {isUnavailable
+                    ? "— UNAVAILABLE — 1 epoch / no discovery pair"
+                    : `(${s.observationCount} epochs, ${s.timespanDays}d)`}
+                </option>
+              );
+            })}
           </select>
 
           {activeSeries && (

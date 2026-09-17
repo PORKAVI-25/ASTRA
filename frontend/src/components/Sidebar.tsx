@@ -194,7 +194,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400" />
             <span className="font-bold uppercase tracking-wider">Air-Gapped Console</span>
           </div>
-          <span className="text-[9px] text-slate-400 font-mono">100% OFFLINE</span>
+          <span className="text-[9px] text-slate-400 font-mono">LOCAL ONLY</span>
         </div>
 
         <div className="px-1 text-[10px] font-mono text-slate-400 flex items-center justify-between">
