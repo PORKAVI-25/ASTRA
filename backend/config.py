@@ -59,6 +59,10 @@ class Settings(BaseSettings):
         default=Path("data/change_suppression"),
         description="False-alarm suppression results and filtered masks",
     )
+    ASTRA_TEMPORAL_EVIDENCE_DIR: Path = Field(
+        default=Path("data/temporal_evidence"),
+        description="Temporal evidence evaluation results and onset trajectories",
+    )
 
     @field_validator("ASTRA_CORS_ORIGINS", mode="before")
     @classmethod

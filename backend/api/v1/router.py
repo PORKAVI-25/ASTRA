@@ -8,6 +8,7 @@ from backend.api.v1.endpoints import (
     health,
     ingestion,
     retrieval,
+    temporal_evidence,
 )
 
 api_router = APIRouter()
@@ -29,3 +30,6 @@ api_router.include_router(change_classification.router, tags=["Change Classifica
 
 # False-alarm suppression & quality assurance
 api_router.include_router(change_suppression.router, tags=["Change Suppression"])
+
+# Temporal evidence reasoning & earliest support
+api_router.include_router(temporal_evidence.router, tags=["Temporal Evidence"])
