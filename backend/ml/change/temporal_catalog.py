@@ -150,6 +150,13 @@ class TemporalCatalog:
                                 "tile_col": tm.tile_col,
                                 "tile_row": tm.tile_row,
                                 "zoom_level": tm.zoom_level,
+                                "valid_pixel_ratio": tm.valid_pixel_ratio if tm.valid_pixel_ratio is not None else 1.0,
+                                "cloud_cover_percentage": parent_scene.cloud_cover_percentage if parent_scene else None,
+                                "cloud_fraction": (
+                                    (parent_scene.cloud_cover_percentage / 100.0)
+                                    if (parent_scene and parent_scene.cloud_cover_percentage is not None)
+                                    else 0.0
+                                ),
                             },
                         )
 
@@ -176,24 +183,27 @@ class TemporalCatalog:
 
     def _extract_grid_key(self, obs: TemporalObservation) -> str:
         """Derives a stable geographic grid anchor key for grouping observations into a series."""
+        b = obs.bounds_wgs84
+        center_lon = round((b.min_lon + b.max_lon) / 2.0, 2)
+        center_lat = round((b.min_lat + b.max_lat) / 2.0, 2)
+
         # 1. Check tile col/row in metadata
         col = obs.metadata.get("tile_col")
         row = obs.metadata.get("tile_row")
         zoom = obs.metadata.get("zoom_level", 14)
         if col is not None and row is not None:
-            return f"grid_c{int(col):04d}_r{int(row):04d}_z{int(zoom)}"
+            return f"grid_lon{center_lon:.2f}_lat{center_lat:.2f}_c{int(col):04d}_r{int(row):04d}_z{int(zoom)}"
 
         # 2. Try parsing col/row from tile_id
         if obs.tile_id:
             m = re.search(r"c(\d+)_r(\d+)_z(\d+)", obs.tile_id)
             if m:
-                return f"grid_c{int(m.group(1)):04d}_r{int(m.group(2)):04d}_z{int(m.group(3))}"
+                return f"grid_lon{center_lon:.2f}_lat{center_lat:.2f}_c{int(m.group(1)):04d}_r{int(m.group(2)):04d}_z{int(m.group(3))}"
 
         # 3. Fallback to geographic bbox center
-        b = obs.bounds_wgs84
-        center_lon = round((b.min_lon + b.max_lon) / 2.0, 4)
-        center_lat = round((b.min_lat + b.max_lat) / 2.0, 4)
-        return f"geo_lon{center_lon}_lat{center_lat}"
+        center_lon_4 = round((b.min_lon + b.max_lon) / 2.0, 4)
+        center_lat_4 = round((b.min_lat + b.max_lat) / 2.0, 4)
+        return f"geo_lon{center_lon_4}_lat{center_lat_4}"
 
     def build_series(self) -> Dict[str, TemporalSeries]:
         """Groups observations by geographic footprint and sorts chronologically."""

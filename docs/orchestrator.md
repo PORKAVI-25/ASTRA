@@ -176,3 +176,34 @@ To maintain strict modular boundaries and prevent duplicate algorithmic drift:
 - The orchestrator **does NOT evaluate false-alarm suppression rules** (delegated to M4D).
 - The orchestrator **does NOT determine earliest observations or onset intervals** (delegated to M4E).
 - The orchestrator **does NOT introduce microservices or remote network boundaries**.
+
+---
+
+## 11. End-to-End Investigation Runner & Demo Dataset (Phase M4F-C/D)
+
+### Deterministic Multi-Epoch Demo Generator (`scripts/generate_demo_dataset.py`)
+Synthesizes a 4-epoch satellite-style multi-spectral dataset (T1: 2026-01-15, T2: 2026-02-15, T3: 2026-03-15, T4: 2026-04-15) and ingests it through Phase M1:
+- **T1**: Baseline vegetated terrain.
+- **T2**: Emergence of genuine construction target at `[200:230, 200:230]`, unrelated vegetation clearance at `[60:85, 60:85]`, and atmospheric cloud artifact at `[350:375, 350:375]`.
+- **T3**: Construction persists; cloud artifact clears; unrelated clearance remains stable.
+- **T4**: Construction persists; additional unrelated changes occur elsewhere in scene.
+- Automatically tags `CLOUD_COVER="0.0"` and `IS_SYNTHETIC="true"`, ensuring high-confidence pre-change absence at T1 and unambiguous earliest support at T2.
+
+Run command:
+```bash
+python scripts/generate_demo_dataset.py --force
+```
+
+### One-Command CLI Runner (`scripts/run_astra_pipeline.py`)
+Executes an end-to-end investigation through `ASTRAPipelineOrchestrator` and renders an analyst investigation terminal dossier conforming to ASTRA-DC-v0.1:
+```bash
+python scripts/run_astra_pipeline.py --pairing-strategy baseline
+```
+
+Supported flags:
+- `--series-id`: Target `TemporalSeries` identifier (auto-detected if omitted)
+- `--discovery-pair-id`: Discovery `ScenePair` identifier (auto-detected if omitted)
+- `--candidate-region-id`: Candidate region identifier (e.g. `reg_0001`, auto-detected if omitted)
+- `--pairing-strategy`: Subsequent observation pairing strategy (`baseline` or `adjacent`, default: `baseline`)
+- `--output-dir`: Output directory for investigation artifacts (default: `data/processed/investigations`)
+- `--force-generate`: Force regenerate the synthetic demo dataset before executing investigation

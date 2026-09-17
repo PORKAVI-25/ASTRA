@@ -160,6 +160,10 @@ def extract_scene_metadata(file_path: Path, is_cog: bool = False) -> SceneManife
             or tags.get("IS_SYNTHETIC", "").lower() in ["true", "1"]
         )
 
+        # Cloud cover check from tags
+        cloud_tag = tags.get("CLOUD_COVER", tags.get("CLOUD_COVER_PERCENTAGE", tags.get("cloud_cover")))
+        cloud_pct = float(cloud_tag) if cloud_tag is not None else None
+
         return SceneManifest(
             scene_id=scene_id,
             sensor=sensor,
@@ -168,6 +172,7 @@ def extract_scene_metadata(file_path: Path, is_cog: bool = False) -> SceneManife
             crs=crs_str,
             bounds_wgs84=bounds_wgs84,
             spatial_resolution_m=spatial_resolution,
+            cloud_cover_percentage=cloud_pct,
             bands=bands,
             source_file_path=str(path.as_posix()),
             is_cog=is_cog,

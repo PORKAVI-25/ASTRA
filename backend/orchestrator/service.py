@@ -138,7 +138,11 @@ class ASTRAPipelineOrchestrator:
         series = self.catalog.get_series(request.series_id)
         if series is None and len(self.catalog.list_series()) == 0:
             # Attempt discovery if catalog has no series registered
-            tiles_dir = settings.ASTRA_PROCESSED_DIR / "tiles"
+            tiles_dir = (
+                settings.ASTRA_MANIFESTS_DIR / "tiles"
+                if (settings.ASTRA_MANIFESTS_DIR / "tiles").exists()
+                else settings.ASTRA_PROCESSED_DIR / "tiles"
+            )
             scenes_dir = settings.ASTRA_MANIFESTS_DIR / "scenes"
             if tiles_dir.exists() or scenes_dir.exists():
                 self.catalog.discover_manifests(tiles_dir=tiles_dir, scenes_dir=scenes_dir)

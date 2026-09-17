@@ -336,6 +336,17 @@ class ChangeEvidenceExtractor:
             deltas[b_name] = round(d, 4)
             abs_deltas[b_name] = round(abs(d), 4)
 
+        if band_mapping:
+            for sem_name, idx in band_mapping.items():
+                if idx < earlier_valid.shape[0]:
+                    e_m = float(np.mean(earlier_valid[idx]))
+                    l_m = float(np.mean(later_valid[idx]))
+                    earlier_means[sem_name] = round(e_m, 4)
+                    later_means[sem_name] = round(l_m, 4)
+                    deltas[sem_name] = round(l_m - e_m, 4)
+                    abs_deltas[sem_name] = round(abs(l_m - e_m), 4)
+
+        for b_name, d in list(deltas.items()):
             # Atomic features per band
             f_key = f"delta_{b_name.lower()}"
             features[f_key] = EvidenceFeature(
