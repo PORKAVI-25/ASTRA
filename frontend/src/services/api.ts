@@ -18,8 +18,7 @@ import type {
 } from "../types/api";
 
 const API_BASE_URL =
-  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
-  "http://127.0.0.1:8000";
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) || "";
 
 /**
  * Custom error class capturing structured backend error envelopes.
