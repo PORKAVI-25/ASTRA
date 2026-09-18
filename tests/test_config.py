@@ -35,3 +35,15 @@ def test_env_override(monkeypatch):
     test_settings = Settings()
     assert test_settings.ASTRA_ENV == "testing"
     assert test_settings.ASTRA_PORT == 9090
+
+
+def test_default_cors_origins_include_port_5176():
+    """Verifies that default origins include development port 5176 and regex matches."""
+    import re
+    assert "http://127.0.0.1:5176" in settings.ASTRA_CORS_ORIGINS
+    assert "http://localhost:5176" in settings.ASTRA_CORS_ORIGINS
+    assert settings.ASTRA_CORS_ORIGIN_REGEX is not None
+    pattern = re.compile(settings.ASTRA_CORS_ORIGIN_REGEX)
+    assert pattern.fullmatch("http://127.0.0.1:5176") is not None
+    assert pattern.fullmatch("http://localhost:5176") is not None
+    assert pattern.fullmatch("https://external-domain.com") is None

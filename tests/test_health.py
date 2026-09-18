@@ -43,3 +43,24 @@ def test_direct_health_alias(client: TestClient):
     data = response.json()
     assert data["status"] == "healthy"
     assert data["version"] == "0.1.0"
+
+
+def test_cors_origin_port_5176(client: TestClient):
+    """Verifies that local frontend origin http://127.0.0.1:5176 is allowed by CORS."""
+    response = client.get(
+        "/api/v1/health",
+        headers={"Origin": "http://127.0.0.1:5176"},
+    )
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == "http://127.0.0.1:5176"
+    assert response.headers.get("access-control-allow-credentials") == "true"
+
+
+def test_cors_rejected_external_origin(client: TestClient):
+    """Verifies that external non-local origins do not receive CORS allow headers."""
+    response = client.get(
+        "/api/v1/health",
+        headers={"Origin": "https://external-site.com"},
+    )
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") is None

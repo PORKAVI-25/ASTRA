@@ -4,7 +4,7 @@ Provides centralized, validated configuration with strict offline enforcement.
 """
 
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -38,11 +38,25 @@ class Settings(BaseSettings):
             "http://127.0.0.1:5173",
             "http://127.0.0.1:5174",
             "http://127.0.0.1:5175",
+            "http://127.0.0.1:5176",
+            "http://127.0.0.1:5177",
+            "http://127.0.0.1:5178",
+            "http://127.0.0.1:5179",
+            "http://127.0.0.1:4173",
             "http://localhost:5173",
             "http://localhost:5174",
             "http://localhost:5175",
+            "http://localhost:5176",
+            "http://localhost:5177",
+            "http://localhost:5178",
+            "http://localhost:5179",
+            "http://localhost:4173",
         ],
         description="Allowed CORS origins for the frontend",
+    )
+    ASTRA_CORS_ORIGIN_REGEX: Optional[str] = Field(
+        default=r"^http://(localhost|127\.0\.0\.1)(:\d+)?$",
+        description="Allowed regex pattern for local development origins",
     )
 
     # Logging
