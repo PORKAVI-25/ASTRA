@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 /**
  * Component Type-Checking and Unit Verification for ReviewHistory
  *
